@@ -1,0 +1,10 @@
+/.bundle/
+/.vagrant/
+/vendor/
+*~
+node_defaults.yml
+nodes/*.yml
+
+# temporarily exclude
+hieradata/*.yaml
+modules/*

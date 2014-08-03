@@ -1,0 +1,13 @@
+---
+  :box: "ubuntu-precise"
+  :box_url: "http://localhost/fooo/bar.box"
+  :domain: 'local'
+  :memory: 384
+  :bridge: 'eth0'
+  :infra:
+      :lifecycle: 'build',
+      :environment: 'develop'
+      :region: 'west'
+      :installation: 'site'
+      :location: 'eu'
+

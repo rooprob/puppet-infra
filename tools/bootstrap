@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Bootstrap puppet-apply environment for infra development purposes
+#
+# Ubuntu specific
+#
+# NOTE: this does not create a puppet server/client environment
+#
+umask 0022
+while getopts ":hc:e:i:g:l:r:" opt; do
+    case $opt in
+      c) FACTER_infra_lifecycle=$OPTARG  ;;
+      e) FACTER_infra_environment=$OPTARG ;;
+      i) FACTER_infra_installation=$OPTARG ;;
+      g) FACTER_infra_region=$OPTARG ;;
+      l) FACTER_infra_location=$OPTARG ;;
+      r) FACTER_infra_role=$OPTARG  ;;
+      h) echo "for help see script" ; exit 1;;
+      :) echo "options req arguments" ; exit 1;;
+      \?)
+          echo "Invalid option: -$OPTARG" >&2
+          exit 1
+          ;;
+  esac
+done
+
+# XXX Localize to NZ mirror repository
+if [ -e /etc/apt/sources.list ]; then
+  sed -i -e 's,us.archive.ubuntu.com,nz.archive.ubuntu.com,g'  /etc/apt/sources.list
+fi
+
+# XXX killall daemons
+killall puppet
+
+if ! dpkg -l puppetlabs-release >/dev/null; then
+  wget -qO /root/puppetlabs-release-precise.deb http://apt.puppetlabs.com/puppetlabs-release-precise.deb
+  dpkg -i /root/puppetlabs-release-precise.deb
+  apt-get update -qq
+fi
+
+puppet_installed=$(dpkg -s puppet | grep Version)
+if [ "$puppet_installed" != "Version: 3.6.2-1puppetlabs1" ]; then
+    apt-get install -y -qq  ruby-deep-merge ruby1.9.1 puppet='3.6.*' puppet-common='3.6.*'
+
+    # remove annoying warning about decrecated option
+    # https://tickets.puppetlabs.com/browse/PUP-2566
+    sed -i -e 's,\(templatedir.*\),#\1,' /etc/puppet/puppet.conf
+    [ ! -d /etc/puppet/files ] && mkdir /etc/puppet/files
+
+fi
+
+if ! dpkg -l git >/dev/null; then
+    apt-get install -y -qq git
+fi
+
+echo "----------------------------------------------------------------"
+echo " Setup local facts -> /etc/facter/facts.d/infra.yaml"
+echo "----------------------------------------------------------------"
+[ -d /etc/facter/facts.d ] || mkdir -p /etc/facter/facts.d
+cat > /etc/facter/facts.d/infra.yaml<<EOF
+---
+    infra_installation: "$FACTER_infra_installation"
+    infra_region: "$FACTER_infra_region"
+    infra_location: "$FACTER_infra_location"
+    infra_role: "$FACTER_infra_role"
+    infra_environment: "$FACTER_infra_environment"
+    infra_lifecycle: "$FACTER_infra_lifecycle"
+EOF

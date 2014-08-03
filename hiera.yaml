@@ -1,0 +1,12 @@
+:hierarchy:
+  - "local"
+  - "node.%{::clientcert}"
+  - "role.%{infra_role}"
+  - "role.default"
+  - "class.%{calling_class}"
+  - "module.%{calling_module}"
+:merge_behavior: deeper
+:backends:
+  - yaml
+:yaml:
+  :datadir: '/cfg/puppet/hieradata'

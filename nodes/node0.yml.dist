@@ -1,0 +1,7 @@
+---
+  :node0:
+    :private_ip: '172.16.10.10'
+    :memory: 512
+    :infra:
+        :role: 'generic'
+
